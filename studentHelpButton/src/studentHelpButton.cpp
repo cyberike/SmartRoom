@@ -1,27 +1,38 @@
 /* 
- * Project myProject
- * Author: Your Name
- * Date: 
- * For comprehensive documentation and examples, please visit:
- * https://docs.particle.io/firmware/best-practices/firmware-template/
+ * Project: studentHelpButton
+ * Author: Isaac Martinez Sr. 
+ * Date: 3-4-24
  */
-
-// Include Particle Device OS APIs
+ // Include Particle Device OS APIs
 #include "Particle.h"
 
 // Let Device OS manage the connection to the Particle Cloud
-SYSTEM_MODE(AUTOMATIC);
+SYSTEM_MODE (SEMI_AUTOMATIC);
 
-// Run the application and system concurrently in separate threads
-SYSTEM_THREAD(ENABLED);
+//Variables Declared
+int i ;
 
-// Show system, cloud connectivity, and application logs over USB
-// View logs with CLI using 'particle serial monitor --follow'
-SerialLogHandler logHandler(LOG_LEVEL_INFO);
+//Constants Declared/Defined 
+const int HELPBUTTON = D8;
+const int GETBACKTOWORK = D9;
+const int VACATION = D16;
+const int LEDPIN = SCL;
+const int SERVOPIN = D15;
+const int LAVAPIN = D17;
+const int FANPIN = D18;
+const int BUZZERPIN = D19;
+const int DINGPIN = D14;
+
+
+//Declare Objects
+
+button_click HELPBUTTON (D8);
+button_click GETBACKTOWORK ( D9);
+button_click VACATION (D16);
 
 // setup() runs once, when the device is first turned on
 void setup() {
-  // Put initialization like pinMode and begin functions here
+ //  Put initialization like pinMode and begin functions here
 }
 
 // loop() runs over and over again, as quickly as it can execute.
