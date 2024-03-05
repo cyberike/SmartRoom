@@ -3,7 +3,7 @@
  * Author: Isaac Martinez Sr. 
  * Date: 3-4-24
  */
- // Include Particle Device OS APIs
+
 #include "Particle.h"
 
 // Let Device OS manage the connection to the Particle Cloud
@@ -14,6 +14,8 @@ int i;
 int buttonStatus1 = 0; 
 int buttonStatus2 = 0;
 int buttonStatus3 = 0;
+int openCookieJar;
+int closeCookieJar;
 
 //Constants Declared/Defined 
 const int HELPBUTTONPIN = D8;
@@ -30,11 +32,10 @@ const int DINGPIN = D14;
 //Declare Objects
 Servo myServo; // Declares the servo object globally
 
-button_click HELPBUTTON (D8);
-button_click GETBACKTOWORK ( D9);
-button_click VACATION (D16);
+//button_click HELPBUTTON (D8);
+//button_click GETBACKTOWORK ( D9);
+//button_click VACATION (D16);
 
-// setup() runs once, when the device is first turned on
 void setup() {
   Serial.begin(9600);
   pinMode (HELPBUTTONPIN, INPUT_PULLUP);
@@ -54,7 +55,7 @@ void setup() {
 void loop() {
   buttonStatus1 = digitalRead(HELPBUTTONPIN);
   buttonStatus2 = digitalRead(GETBACKTOWORKPIN);
-  buttonStatus3 = digitalRead(VACATIONPIN);
+  buttonStatus3 = digitalRead(VACATIONPIN);// Reads the current state of the button
 
   if (buttonStatus1 == LOW){
     digitalWrite(LEDPIN, HIGH);
@@ -64,17 +65,27 @@ void loop() {
     digitalWrite (LEDPIN, LOW);
     Serial.printf("s =%s\n", "Back To Work");
   }
-  if (button_status3 == LOW) {
+  if (buttonStatus3 == LOW) {
     openCookieJar ();
     digitalWrite (FANPIN, HIGH);
     digitalWrite (LAVAPIN, LOW);
     Serial.printf("s = %s\n", "Don't Worry Be Happy!");
-  } else {
+  }
+  for (int pos = 0; pos <= 180; pos += 1) { // Moves the servo from 0 to 180
+    myServo.write(pos); // Tells the servo to go to position in variable pos
+    delay(15); // Gives the servo 15ms to reach the position
+    }{
+    delay(1000); // Wait for 1 sec
+    myServo.write(0); // Returns the servo to the starting point
+  }
+  else if() {
+    int closeCookieJar;
     closeCookieJar();
     digitalWrite(FANPIN, LOW);
     digitalWrite(LAVAPIN, LOW);
   }
 }
+int openCookieJar;
 void openCookieJar(){
   myServo.write(0);
   delay(1000);
@@ -82,12 +93,6 @@ void openCookieJar(){
 void closeCookieJar(){
   myServo.write(0);
   delay(1000);
-  
-}
-  // The core of your code will likely live here.
 
-  // Example: Publish event to cloud every 10 seconds. Uncomment the next 3 lines to try it!
-  // Log.info("Sending Hello World to the cloud!");
-  // Particle.publish("Hello world!");
-  // delay( 10 * 1000 ); // milliseconds and blocking - see docs for more info!
 }
+  
