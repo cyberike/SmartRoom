@@ -9,14 +9,13 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1306.h"
 #include "IoTTimer.h"
+#include "wemo.h"
+#include "hue.h"
 
 SYSTEM_MODE(MANUAL); //control logging into classroom router
 
 //Variables Declared
 int i;
-int buttonStatus1 = 0;
-int buttonStatus2 = 0;
-int buttonStatus3 = 0;
 bool buttonOnOff = false;
 bool vacationMode = false;
 int color;
@@ -24,9 +23,9 @@ int color;
 char studentName [] ={"Isaac"};
 
 //Constants Declared/Defined
-const int HELPBUTTONPIN = D8; 
-const int GETBACKTOWORKPIN = D9;
-const int VACATIONPIN = D16;
+//const int HELPBUTTONPIN = D8; 
+//const int GETBACKTOWORKPIN = D9;
+//const int VACATIONPIN = D16;
 const int LEDPIN = SCL;
 const int SERVOPIN = D15;
 const int LAVAPIN = D17;
@@ -39,8 +38,6 @@ const int BRIGHTNESS = 100;
 const int initDing =3000;
 const int recurDing =300000;
 
-//const unsigned long BUZZER_INTERVAL = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-//const unsigned long DING_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 
 //Declare Objects
@@ -49,33 +46,29 @@ Adafruit_SSD1306 display(-1);
 IoTTimer buzzerTimer;
 IoTTimer startDingTimer;
 Button helpButton(D8);
+Button backToWorkButton(D9);
+Button vacationButton(D16);
 // class, object, (pin/sometime nothing)
 // Function prototypes
 void openCookieJar();
 void closeCookieJar();
-void displaySplashScreen();
+//void displaySplashScreen();
 void buzzerCallback();
 void dingCallback();
 
 void setup() {
   Serial.begin(9600);
-
   WiFi.on();
   WiFi.clearCredentials();
   WiFi.setCredentials("IoTNetwork");
-  
   WiFi.connect();
   while(WiFi.connecting()) {
-    Serial.printf(".");
+    Serial.printf("Lets Go!!!!");
   }
-  Serial.printf("\n\n");
-
-  pinMode(GETBACKTOWORKPIN, INPUT_PULLUP);
-  pinMode(VACATIONPIN, INPUT_PULLUP);
 
   pinMode(LEDPIN, OUTPUT);
-  pinMode(LAVAPIN, OUTPUT);
-  pinMode(FANPIN, OUTPUT);
+  //pinMode(LAVAPIN, OUTPUT);
+  //pinMode(FANPIN, OUTPUT);
   pinMode(BUZZERPIN, OUTPUT);
   pinMode(DINGPIN, OUTPUT);
   pinMode(SERVOPIN, OUTPUT);
@@ -83,51 +76,77 @@ void setup() {
 
   // Initialize OLED
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  displaySplashScreen();
+  display.setRotation(2);
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.clearDisplay();
   display.display();
-  noTone(DINGPIN);
+  delay(2000);
+  display.println("Student Help Button");
+  display.println("By Isaac Martinez Sr.");
+  display.display();
+  delay(2000);
+  display.clearDisplay();
+
+  // Initialize Ding
 }
 
 void loop() {
-  buttonStatus2 = digitalRead(GETBACKTOWORKPIN);
-  buttonStatus3 = digitalRead(VACATIONPIN);// Reads the current state of the button
-
+    
   if (helpButton.isClicked()) {
+    display.setCursor(0, 0);
     setHue(BULB, true, HueRed, BRIGHTNESS, 255);
     Serial.printf("Help button pressed, Instructor notified %s is now in the que\n",studentName);
-    tone(DINGPIN,4186,3000); 
+    display.printf("Help button pressed, Instructor notified %s is now in the que\n",studentName);
+    tone(DINGPIN,4186,2000); 
     Serial.printf("Buzzer on\n");
     startDingTimer.startTimer(recurDing);
-  }
+    display.display();
+    display.clearDisplay();
+
+  } 
     if(startDingTimer.isTimerReady()){
       tone(DINGPIN,4186,3000); 
       startDingTimer.startTimer(recurDing);
     }
+       if (backToWorkButton.isClicked()) {
+        display.setCursor(0, 0);
+    setHue(BULB, false, HueRed, BRIGHTNESS, 255);
+        display.setCursor(0, 0);
+    display.printf("Get Back To Work!,%s has been saved.\n",studentName);
+
+    }
+   
+  if (vacationButton.isClicked()){
+    buttonOnOff =! buttonOnOff; 
+  }
+  if(buttonOnOff){
+    display.setCursor(0, 0);
+    wemoWrite (MYWEMO, HIGH);
+    openCookieJar();
+    display.setCursor(0, 0);
+display.printf("Test Message\n");
+    display.display();
 
 
-//   if (buttonStatus2 == LOW) {
-//     buttonOnOff = false;
-//     vacationMode = false;
-//     digitalWrite(LEDPIN, LOW);
-//     digitalWrite(FANPIN, LOW);
-//     wemoWrite(MYWEMO, LOW); // Turn off the Wemo for lava lamp and fan
-//     Serial.printf("s =%s\n", "Back To Work");
-//     delay(1000);
-//   }
-//   if (buttonStatus3 == LOW) {
-//     vacationMode = !vacationMode;
-//     if (vacationMode) {
-//       openCookieJar();
-//       digitalWrite(FANPIN, HIGH);
-//       wemoWrite(MYWEMO, HIGH); // Turn on the Wemo for lava lamp and fan
-//       Serial.printf("s = %s\n", "Don't Worry Be Happy!");
-//     } else {
-//       closeCookieJar();
-//       digitalWrite(FANPIN, LOW);
-//       wemoWrite(MYWEMO, LOW); // Turn off the Wemo for lava lamp and fan
-//     }
-//     delay(1000);
-//   }
+   // Serial.printf("Don't Worry Be Happy!");
+   // display.printf("Don't Worry Be Happy!");
+}
+  else{ 
+    display.setCursor(0, 0);
+    wemoWrite(MYWEMO,LOW);
+    closeCookieJar();
+  }
+  }
+  
+
+
+   
+
+
+    
+
 
 //   // Control Hue light based on help button state
 //   if (buttonOnOff) {
@@ -138,28 +157,14 @@ void loop() {
 
 // }
 
-// void openCookieJar() {
-//   for (int pos = 0; pos <= 180; pos += 1) {
-//     myServo.write(pos);
-//     delay(15);
-//   }
-//   delay(1000);
+void openCookieJar(){
+  myServo.write(360);
+  //delay (1000);
 }
 
 void closeCookieJar() {
   myServo.write(0);
-  delay(1000);
-}
-
-void displaySplashScreen() {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 0);
-  display.println("Student Help Button");
-  display.println("by Isaac Martinez Sr.");
-  display.display();
-  delay(2000);
+  //delay(1000);
 }
 
 void buzzerCallback() {
